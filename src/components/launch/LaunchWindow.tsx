@@ -41,6 +41,11 @@ const ICON_SIZE = 20;
 const HUD_DEVICE_POPUP_GAP = 28;
 // Horizontal layout: mirrors the `bottom-[68px]` class on the popup element.
 const HUD_DEVICE_POPUP_HORIZONTAL_BOTTOM = 68;
+// Language prompt: mirrors the `top-8` (32px) and `max-w-[520px]` classes on the
+// prompt element, plus a gap so it never overlaps the bar.
+const LANGUAGE_PROMPT_TOP_OFFSET = 32;
+const LANGUAGE_PROMPT_MAX_WIDTH = 520;
+const LANGUAGE_PROMPT_BAR_GAP = 12;
 
 const ICON_CONFIG = {
 	drag: { icon: RxDragHandleDots2, size: ICON_SIZE },
@@ -145,6 +150,7 @@ export function LaunchWindow() {
 	const [supportsCursorModeToggle, setSupportsCursorModeToggle] = useState(false);
 	const languageTriggerRef = useRef<HTMLButtonElement | null>(null);
 	const languageMenuPanelRef = useRef<HTMLDivElement | null>(null);
+	const languagePromptRef = useRef<HTMLDivElement | null>(null);
 	const hudBarRef = useRef<HTMLDivElement | null>(null);
 	const deviceSelectorRef = useRef<HTMLDivElement | null>(null);
 	// Measured bar height, anchors the popups above the tall vertical tray so they don't overlap it.
@@ -348,6 +354,18 @@ export function LaunchWindow() {
 			halfWidth = Math.max(halfWidth, centerX - rect.left, rect.right - centerX);
 		}
 
+		// The system-language prompt is anchored to the window top (`top-8`), so the
+		// window must be tall enough to hold it above the bar, else its buttons get
+		// clipped by the window bounds. Width uses the prompt's max width constant,
+		// not its rendered width, since the latter tracks the viewport and would feed back.
+		if (languagePromptRef.current) {
+			const rect = languagePromptRef.current.getBoundingClientRect();
+			if (rect.height !== 0) {
+				topFromBottom += LANGUAGE_PROMPT_TOP_OFFSET + rect.height + LANGUAGE_PROMPT_BAR_GAP;
+				halfWidth = Math.max(halfWidth, LANGUAGE_PROMPT_MAX_WIDTH / 2);
+			}
+		}
+
 		setHudBarHeight((prev) => {
 			const next = Math.round(barEl.scrollHeight);
 			return Math.abs(prev - next) > 1 ? next : prev;
@@ -370,6 +388,7 @@ export function LaunchWindow() {
 		hudResizeObserverRef.current = observer;
 		if (hudBarRef.current) observer.observe(hudBarRef.current);
 		if (deviceSelectorRef.current) observer.observe(deviceSelectorRef.current);
+		if (languagePromptRef.current) observer.observe(languagePromptRef.current);
 		measureHudSize();
 		return () => {
 			observer.disconnect();
@@ -397,6 +416,10 @@ export function LaunchWindow() {
 	);
 	const setLanguageMenuPanelEl = useCallback(
 		(el: HTMLDivElement | null) => observeHudElement(el, languageMenuPanelRef),
+		[observeHudElement],
+	);
+	const setLanguagePromptEl = useCallback(
+		(el: HTMLDivElement | null) => observeHudElement(el, languagePromptRef),
 		[observeHudElement],
 	);
 
@@ -518,6 +541,7 @@ export function LaunchWindow() {
 		>
 			{systemLocaleSuggestion && (
 				<div
+					ref={setLanguagePromptEl}
 					data-hud-interactive="true"
 					className={`fixed top-8 left-1/2 z-30 w-[calc(100vw-1rem)] max-w-[520px] -translate-x-1/2 rounded-xl border border-white/15 bg-[rgba(20,20,28,0.95)] p-3 shadow-2xl backdrop-blur-xl text-white animate-in fade-in-0 zoom-in-95 duration-200 ${styles.electronNoDrag}`}
 				>

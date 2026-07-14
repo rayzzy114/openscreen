@@ -1,4 +1,7 @@
 > [!Note]
+> this is a working fixed version of openscreen. the upstream repo is archived and read-only, so bugs can't be reported or fixed there. this fork fixes the "use your system language?" prompt whose buttons were cut off by the hud window bounds and could not be clicked (fix in `src/components/launch/LaunchWindow.tsx`).
+
+> [!Note]
 > OpenScreen is now archived and no longer maintained. For continued maintenance and development, a community-driven spin-off led by one of the core contributors is available here: https://github.com/EtienneLescot/openscreen
 
 
